@@ -1,16 +1,17 @@
 {
   "name": "ibm_course",
   "version": "1.0.0",
-  "description": "This repo is for taking notes from Node.js and Express.js Course Provided by IBM",
+  "description": "",
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mongoose": "^7.4.2"
   }
 }
