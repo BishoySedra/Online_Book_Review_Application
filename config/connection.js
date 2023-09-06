@@ -1,14 +1,22 @@
-import mongoose from "mongoose";
+import dotenv from "dotenv";
+import { Sequelize } from "sequelize";
 
-const connectionURL = `mongodb+srv://Bishoy_Sedra:g3qPZnXEEMvHJP4a@cluster0.bjccfxf.mongodb.net/books`;
+dotenv.config();
 
-async function connectDB() {
+export const sequelize = new Sequelize(
+    process.env.DATABASE_NAME,
+    process.env.DATABASE_USERNAME,
+    process.env.DATABASE_PASSWORD,
+    {
+        host: process.env.DATABASE_HOST,
+        dialect: 'mysql'
+    });
+
+export async function connectDB() {
     try {
-        await mongoose.connect(connectionURL);
-        console.log("Connected to MongoDB");
+        // const connectedDataBase = await sequelize.sync();
+        console.log("Connected Database!");
     } catch (error) {
-        console.log(error);
+        console.log("Failed connecting to database", { message: error.message });
     }
 }
-
-export default connectDB;

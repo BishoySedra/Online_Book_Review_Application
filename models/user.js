@@ -1,19 +1,15 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/connection.js"
 
-const book = sequelize.define('Book', {
-    ISBN: {
+const user = sequelize.define('User', {
+    username: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    author: {
+    password: {
         type: DataTypes.STRING,
         allowNull: false
     }
 });
 
-export default book;
+export default user;
