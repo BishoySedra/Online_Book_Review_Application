@@ -8,7 +8,10 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "cross-env NODE_ENV=test bun test --preload ./tests/setup.js",
-    "test:watch": "cross-env NODE_ENV=test bun test --watch --preload ./tests/setup.js"
+    "test:watch": "cross-env NODE_ENV=test bun test --watch --preload ./tests/setup.js",
+    "test:auth": "cross-env NODE_ENV=test bun test tests/auth.test.js --preload ./tests/setup.js",
+    "test:book": "cross-env NODE_ENV=test bun test tests/book.test.js --preload ./tests/setup.js",
+    "test:review": "cross-env NODE_ENV=test bun test tests/review.test.js --preload ./tests/setup.js"
   },
   "keywords": [],
   "author": "",

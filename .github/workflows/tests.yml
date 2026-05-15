@@ -6,11 +6,15 @@ on:
     pull_request:
         branches: ["**"]
 
-jobs:
-    test:
-        name: Run unit tests (Bun)
-        runs-on: ubuntu-latest
+env:
+    NODE_ENV: test
+    SALT_ROUNDS: "10"
+    TOKEN_SECRET_KEY: "test_secret_key_ci"
 
+jobs:
+    test-auth:
+        name: Auth Service Tests
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -23,9 +27,41 @@ jobs:
             - name: Install dependencies
               run: bun install
 
-            - name: Run tests
-              env:
-                  NODE_ENV: test
-                  SALT_ROUNDS: "10"
-                  TOKEN_SECRET_KEY: "test_secret_key_ci"
-              run: bun run test
+            - name: Run auth tests
+              run: bun run test:auth
+
+    test-book:
+        name: Book Service Tests
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Install dependencies
+              run: bun install
+
+            - name: Run book tests
+              run: bun run test:book
+
+    test-review:
+        name: Review Service Tests
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Install dependencies
+              run: bun install
+
+            - name: Run review tests
+              run: bun run test:review
