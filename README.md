@@ -1,6 +1,6 @@
 # Online Book Review API
 
-A RESTful back-end API for managing books and user reviews. Built as the final project for the IBM Course *"Developing Back-End Apps with Node.js and Express"*, and extended with production-ready patterns including a layered architecture, centralised error handling, and interactive Swagger documentation.
+A RESTful back-end API for managing books and user reviews. Built as the final project for the IBM Course *"Developing Back-End Apps with Node.js and Express"*, and extended with production-ready patterns including a layered architecture, centralised error handling, interactive Swagger documentation, and a full integration test suite.
 
 ---
 
@@ -12,8 +12,10 @@ A RESTful back-end API for managing books and user reviews. Built as the final p
 - **Layered architecture** — controllers → services → models (clear separation of concerns)
 - **Centralised error handling** — `ApiError` class + global error-handler middleware (no repetitive try/catch in controllers)
 - **Async wrapper** — `asyncWrapper` utility eliminates boilerplate try/catch blocks
-- **Swagger UI** — interactive API documentation at `/api-docs`
+- **Swagger UI** — interactive API documentation at `/docs`
 - **Docker Compose** — one-command MySQL setup for local development
+- **Integration tests** — real-service tests against SQLite in-memory DB, one script per service
+- **CI** — GitHub Actions runs each service's tests in a parallel job on every push and PR
 
 ---
 
@@ -24,10 +26,12 @@ A RESTful back-end API for managing books and user reviews. Built as the final p
 | Runtime | Node.js (ESM) |
 | Framework | Express 5 |
 | ORM | Sequelize 6 |
-| Database | MySQL 8 |
+| Database (production) | MySQL 8 |
+| Database (testing) | SQLite in-memory |
 | Auth | JSON Web Tokens (jsonwebtoken) |
 | Password hashing | bcrypt |
 | API Docs | swagger-jsdoc + swagger-ui-express |
+| Test runner | Bun (bun:test) |
 | Dev server | nodemon |
 | Containerisation | Docker Compose |
 
@@ -36,44 +40,54 @@ A RESTful back-end API for managing books and user reviews. Built as the final p
 ## Project Structure
 
 ```
-├── app.js                  # Entry point — wires middleware, routes, swagger
-├── docker-compose.yml      # MySQL container setup
-├── .env.example            # Environment variable template
+├── app.js                      # Entry point — wires middleware, routes, swagger
+├── docker-compose.yml          # MySQL container setup
+├── .env.example                # Environment variable template
 │
 ├── config/
-│   ├── connection.js       # Sequelize instance & DB connect helper
-│   └── swagger.js          # Swagger/OpenAPI spec configuration
+│   ├── connection.js           # Sequelize instance — MySQL (prod) / SQLite (test)
+│   └── swagger.js              # Swagger/OpenAPI spec configuration
 │
-├── models/                 # Sequelize model definitions
+├── models/                     # Sequelize model definitions
 │   ├── user.js
 │   ├── book.js
 │   └── review.js
 │
-├── services/               # Business logic (pure functions, throw ApiError)
+├── services/                   # Business logic (pure functions, throw ApiError)
 │   ├── auth.js
 │   ├── book.js
 │   └── review.js
 │
-├── controllers/            # Thin HTTP layer — parse request, call service, respond
+├── controllers/                # Thin HTTP layer — parse request, call service, respond
 │   ├── auth.js
 │   ├── book.js
 │   └── review.js
 │
-├── routes/                 # Express routers + Swagger JSDoc annotations
+├── routes/                     # Express routers + Swagger JSDoc annotations
 │   ├── auth.js
 │   ├── book.js
 │   └── review.js
 │
 ├── middleware/
-│   ├── authenticate.js     # JWT verification middleware
-│   ├── error-handler.js    # Global Express error handler
-│   └── not-found.js        # 404 handler
+│   ├── authenticate.js         # JWT verification middleware
+│   ├── error-handler.js        # Global Express error handler
+│   └── not-found.js            # 404 handler
 │
-└── utils/
-    ├── asyncWrapper.js     # Wraps async handlers — forwards errors to next()
-    ├── apiError.js         # Operational HTTP error class
-    ├── hashing.js          # bcrypt helpers
-    └── tokens.js           # JWT helpers
+├── utils/
+│   ├── asyncWrapper.js         # Wraps async handlers — forwards errors to next()
+│   ├── apiError.js             # Operational HTTP error class
+│   ├── hashing.js              # bcrypt helpers
+│   └── tokens.js               # JWT helpers
+│
+└── tests/
+    ├── setup.js                # Bun preload — sets SALT_ROUNDS & TOKEN_SECRET_KEY defaults
+    ├── auth.test.js            # Auth service integration tests
+    ├── book.test.js            # Book service integration tests
+    ├── review.test.js          # Review service integration tests
+    ├── helpers/
+    │   └── db.js               # resetDb() — drops & recreates all tables (SQLite)
+    └── fixtures/
+        └── book.fixture.js     # Shared TEST_BOOK constant
 ```
 
 ---
@@ -125,7 +139,7 @@ A RESTful back-end API for managing books and user reviews. Built as the final p
    npm run dev
    ```
 
-The API will be available at `http://localhost:<PORT>/api/v1` and the Swagger UI at `http://localhost:<PORT>/api-docs`.
+The API will be available at `http://localhost:<PORT>/api/v1` and the Swagger UI at `http://localhost:<PORT>/docs`.
 
 ---
 
@@ -145,6 +159,8 @@ Copy `.env.example` to `.env` and set the following:
 | `SALT_ROUNDS` | bcrypt salt rounds | `10` |
 
 > When running the app **locally** against the Docker container, set `DATABASE_HOST=127.0.0.1`.
+>
+> Tests never read `.env` — `NODE_ENV=test` activates SQLite and `tests/setup.js` supplies safe fallback values for `SALT_ROUNDS` and `TOKEN_SECRET_KEY` automatically.
 
 ---
 
@@ -165,12 +181,63 @@ docker compose down -v
 
 ---
 
+## Testing
+
+Tests use [Bun's built-in test runner](https://bun.sh/docs/cli/test) and run against a **SQLite in-memory database** — no MySQL or Docker required. Each test file gets a clean database state via `resetDb()` in `beforeEach`.
+
+### Run all tests
+
+```bash
+npm test
+```
+
+### Run tests for a single service
+
+```bash
+npm run test:auth      # Auth service only   (8 tests)
+npm run test:book      # Book service only   (14 tests)
+npm run test:review    # Review service only (9 tests)
+```
+
+### Watch mode (re-runs on file save)
+
+```bash
+npm run test:watch
+```
+
+### How it works
+
+| Concern | Solution |
+|---|---|
+| No real DB needed | `NODE_ENV=test` switches Sequelize dialect to `sqlite :memory:` |
+| Missing env vars in CI | `tests/setup.js` (preloaded by Bun) sets safe fallback values with `??=` |
+| Clean state per test | `resetDb()` calls `sequelize.sync({ force: true })` in `beforeEach` |
+| No mocks | Tests call real service functions against the real ORM / real SQLite DB |
+
+---
+
+## Continuous Integration
+
+GitHub Actions runs the three test jobs **in parallel** on every push and pull request to any branch. Each job is independent so a failure in one service does not block the others.
+
+```
+push / pull_request
+        │
+        ├── test-auth    (ubuntu-latest) → npm run test:auth
+        ├── test-book    (ubuntu-latest) → npm run test:book
+        └── test-review  (ubuntu-latest) → npm run test:review
+```
+
+No database service container is needed in CI — SQLite in-memory is used automatically.
+
+---
+
 ## API Documentation
 
 Interactive Swagger UI is available at:
 
 ```
-http://localhost:<PORT>/api-docs
+http://localhost:<PORT>/docs
 ```
 
 Authenticated endpoints require a `Bearer <token>` header. Obtain the token via `POST /api/v1/auth/login`, then click **Authorize** in the Swagger UI and paste the token.
