@@ -1,91 +1,37 @@
-import book from "../models/book.js"
+import { asyncWrapper } from "../utils/asyncWrapper.js";
+import {
+    fetchAllBooks,
+    createBook,
+    fetchBooksByISBN,
+    fetchBooksByTitle,
+    fetchBooksByAuthor,
+} from "../services/book.js";
 
-export async function getAllBooks(req, res) {
-    try {
-        const books = await book.findAll();
-        res.json(books);
-    } catch (error) {
-        res.status(500).json({ message: "Internal Server Error!!" });
-    }
-}
+export const getAllBooks = asyncWrapper(async (req, res) => {
+    const books = await fetchAllBooks();
+    res.json(books);
+});
 
-export async function addBook(req, res) {
-    try {
+export const addBook = asyncWrapper(async (req, res) => {
+    const result = await createBook(req.body);
+    res.status(201).json(result);
+});
 
-        const foundBook = await book.findOne({ where: req.body });
-        if (foundBook) {
-            return res.json({ message: "Book Already Found!!" });
-        }
+export const getBooksByISBN = asyncWrapper(async (req, res) => {
+    const { ISBN } = req.body;
+    const foundBooks = await fetchBooksByISBN(ISBN);
+    res.json({ message: "Books are Found!!", foundBooks });
+});
 
-        const newBook = await book.create(req.body);
-        res.json({ message: "Book Added Successfully!" });
+export const getBooksByTitle = asyncWrapper(async (req, res) => {
+    const { title } = req.body;
+    const foundBooks = await fetchBooksByTitle(title);
+    res.json({ message: "Books are Found!!", foundBooks });
+});
 
-    } catch (error) {
-        res.status(500).json({ message: "Internal Server Error!!" });
-    }
-}
-
-export async function getBooksByISBN(req, res) {
-    try {
-
-        const { ISBN } = req.body;
-
-        if (!ISBN) {
-            return res.json({ message: "Please, provide a valid ISBN Code!" });
-        }
-
-        const foundBooks = await book.findAll({ where: { ISBN } });
-        if (foundBooks.length) {
-            return res.json({ message: "Books are Found!!", foundBooks });
-        }
-
-        res.json({ message: "No book found with this ISBN Code!" });
-    } catch (error) {
-
-        res.status(500).json({ message: "Internal Server Error!!" });
-
-    }
-}
-
-export async function getBooksByTitle(req, res) {
-    try {
-
-        const { title } = req.body;
-
-        if (!title) {
-            return res.json({ message: "Please, provide a valid title!" });
-        }
-
-        const foundBooks = await book.findAll({ where: { title } });
-        if (foundBooks.length) {
-            return res.json({ message: "Books are Found!!", foundBooks });
-        }
-
-        res.json({ message: "No book found with this title!" });
-
-    } catch (error) {
-        res.status(500).json({ message: "Internal Server Error!!" });
-    }
-}
-
-export async function getBooksByAuthor(req, res) {
-    try {
-
-        const { author } = req.body;
-
-        if (!author) {
-            return res.json({ message: "Please, provide a valid author name!" });
-        }
-
-        const foundBooks = await book.findAll({ where: { author } });
-        if (foundBooks.length) {
-            return res.json({ message: "Books are Found!!", foundBooks });
-        }
-
-        res.json({ message: "No book found with this author name!" });
-
-    } catch (error) {
-        res.status(500).json({ message: "Internal Server Error!!" });
-    }
-}
+export const getBooksByAuthor = asyncWrapper(async (req, res) => {
+    const { author } = req.body;
+    const foundBooks = await fetchBooksByAuthor(author);
+    res.json({ message: "Books are Found!!", foundBooks });
+});
 
