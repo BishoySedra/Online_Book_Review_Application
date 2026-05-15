@@ -1,7 +1,15 @@
 import review from "../models/review.js";
+import book from "../models/book.js";
 import { ApiError } from "../utils/apiError.js";
 
 export async function upsertReview(user_id, book_id, review_text) {
+
+    const foundBook = await book.findOne({ where: { id: book_id } });
+
+    if (!foundBook) {
+        throw new ApiError(404, "No book found with this id to review!");
+    }
+
     const foundReview = await review.findOne({ where: { UserId: user_id, BookId: book_id } });
 
     if (foundReview) {
@@ -27,6 +35,11 @@ export async function fetchReviews(book_id) {
 }
 
 export async function removeReview(user_id, book_id) {
+    const foundBook = await book.findOne({ where: { id: book_id } });
+    if (!foundBook) {
+        throw new ApiError(404, "No book found with this id to delete review!");
+    }
+
     const deletedCount = await review.destroy({ where: { UserId: user_id, BookId: book_id } });
 
     if (!deletedCount) {
