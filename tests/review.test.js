@@ -31,7 +31,7 @@ describe("upsertReview", () => {
     });
 
     it("throws ApiError 404 when the book does not exist", async () => {
-        await expect(ReviewServices.upsertReview(testUser.id, 99999, "text")).rejects.toMatchObject({
+        expect(ReviewServices.upsertReview(testUser.id, 99999, "text")).rejects.toMatchObject({
             statusCode: 404,
             message: "No book found with this id to review!",
         });
@@ -48,14 +48,13 @@ describe("fetchReviews", () => {
     });
 
     it("throws ApiError 404 when no reviews exist for the book", async () => {
-        await expect(ReviewServices.fetchReviews(testBook.id)).rejects.toMatchObject({
+        expect(ReviewServices.fetchReviews(testBook.id)).rejects.toMatchObject({
             statusCode: 404,
             message: "No review found for this book!",
         });
     });
 });
 
-// ── removeReview ──────────────────────────────────────────────────────────────
 
 describe("removeReview", () => {
     it("deletes the review and returns success message", async () => {
@@ -67,18 +66,18 @@ describe("removeReview", () => {
     it("review is no longer retrievable after deletion", async () => {
         await ReviewServices.upsertReview(testUser.id, testBook.id, "Great book!");
         await ReviewServices.removeReview(testUser.id, testBook.id);
-        await expect(ReviewServices.fetchReviews(testBook.id)).rejects.toMatchObject({ statusCode: 404 });
+        expect(ReviewServices.fetchReviews(testBook.id)).rejects.toMatchObject({ statusCode: 404 });
     });
 
     it("throws ApiError 404 when the book does not exist", async () => {
-        await expect(ReviewServices.removeReview(testUser.id, 99999)).rejects.toMatchObject({
+        expect(ReviewServices.removeReview(testUser.id, 99999)).rejects.toMatchObject({
             statusCode: 404,
             message: "No book found with this id to delete review!",
         });
     });
 
     it("throws ApiError 404 when the user has no review for the book", async () => {
-        await expect(ReviewServices.removeReview(testUser.id, testBook.id)).rejects.toMatchObject({
+        expect(ReviewServices.removeReview(testUser.id, testBook.id)).rejects.toMatchObject({
             statusCode: 404,
             message: "No review found for that user to delete!",
         });

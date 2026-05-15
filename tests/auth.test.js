@@ -30,7 +30,7 @@ describe("registerUser", () => {
 
     it("throws ApiError 409 when username already exists", async () => {
         await AuthServices.registerUser("alice", "password123");
-        await expect(AuthServices.registerUser("alice", "password123")).rejects.toMatchObject({
+        expect(AuthServices.registerUser("alice", "password123")).rejects.toMatchObject({
             statusCode: 409,
             message: "This user is already registered!",
         });
@@ -60,14 +60,14 @@ describe("loginUser", () => {
     });
 
     it("throws ApiError 401 when user does not exist", async () => {
-        await expect(AuthServices.loginUser("ghost", "password123")).rejects.toMatchObject({
+        expect(AuthServices.loginUser("ghost", "password123")).rejects.toMatchObject({
             statusCode: 401,
             message: "Invalid Credentials!",
         });
     });
 
     it("throws ApiError 401 on wrong password", async () => {
-        await expect(AuthServices.loginUser("alice", "wrongpassword")).rejects.toMatchObject({
+        expect(AuthServices.loginUser("alice", "wrongpassword")).rejects.toMatchObject({
             statusCode: 401,
             message: "Invalid Credentials!",
         });

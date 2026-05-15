@@ -36,7 +36,7 @@ describe("createBook", () => {
 
     it("throws ApiError 409 when the same book is added twice", async () => {
         await BookServices.createBook(TEST_BOOK);
-        await expect(BookServices.createBook(TEST_BOOK)).rejects.toMatchObject({
+        expect(BookServices.createBook(TEST_BOOK)).rejects.toMatchObject({
             statusCode: 409,
             message: "Book Already Found!!",
         });
@@ -45,11 +45,11 @@ describe("createBook", () => {
 
 describe("fetchBooksByISBN", () => {
     it("throws ApiError 400 when ISBN is not provided", async () => {
-        await expect(BookServices.fetchBooksByISBN(undefined)).rejects.toMatchObject({ statusCode: 400 });
+        expect(BookServices.fetchBooksByISBN(undefined)).rejects.toMatchObject({ statusCode: 400 });
     });
 
     it("throws ApiError 404 when no book matches the ISBN", async () => {
-        await expect(BookServices.fetchBooksByISBN("000-0")).rejects.toMatchObject({ statusCode: 404 });
+        expect(BookServices.fetchBooksByISBN("000-0")).rejects.toMatchObject({ statusCode: 404 });
     });
 
     it("returns books matching the ISBN", async () => {
@@ -64,11 +64,11 @@ describe("fetchBooksByISBN", () => {
 
 describe("fetchBooksByTitle", () => {
     it("throws ApiError 400 when title is not provided", async () => {
-        await expect(BookServices.fetchBooksByTitle(undefined)).rejects.toMatchObject({ statusCode: 400 });
+        expect(BookServices.fetchBooksByTitle(undefined)).rejects.toMatchObject({ statusCode: 400 });
     });
 
     it("throws ApiError 404 when no book matches the title", async () => {
-        await expect(BookServices.fetchBooksByTitle("Unknown Title")).rejects.toMatchObject({ statusCode: 404 });
+        expect(BookServices.fetchBooksByTitle("Unknown Title")).rejects.toMatchObject({ statusCode: 404 });
     });
 
     it("returns books matching the title", async () => {
@@ -83,11 +83,11 @@ describe("fetchBooksByTitle", () => {
 
 describe("fetchBooksByAuthor", () => {
     it("throws ApiError 400 when author is not provided", async () => {
-        await expect(BookServices.fetchBooksByAuthor(undefined)).rejects.toMatchObject({ statusCode: 400 });
+        expect(BookServices.fetchBooksByAuthor(undefined)).rejects.toMatchObject({ statusCode: 400 });
     });
 
     it("throws ApiError 404 when no book matches the author", async () => {
-        await expect(BookServices.fetchBooksByAuthor("Unknown Author")).rejects.toMatchObject({ statusCode: 404 });
+        expect(BookServices.fetchBooksByAuthor("Unknown Author")).rejects.toMatchObject({ statusCode: 404 });
     });
 
     it("returns books matching the author", async () => {
