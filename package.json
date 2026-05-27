@@ -32,5 +32,8 @@
     "cross-env": "^10.1.0",
     "nodemon": "^3.1.14",
     "sqlite3": "^6.0.1"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }
